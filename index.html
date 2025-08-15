@@ -2,85 +2,289 @@
 <html lang="ms">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chili Pan Mee Halal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAHA Store – Dashboard Jualan & FB Ads</title>
+  <meta name="description" content="Dashboard ringkas untuk lihat Sales Toyyibpay & prestasi FB Ads (Clicks, Amount Spent, ROAS, CPA)." />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #fff8f5;
-      text-align: center;
-      color: #333;
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --card:#111827; /* gray-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --accent:#ef4444; /* red-500 */
+      --accent-2:#f59e0b; /* amber-500 */
+      --ok:#10b981; /* emerald-500 */
     }
-    header {
-      background: #d62828;
-      color: white;
-      padding: 20px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2rem;
-    }
-    .hero img {
-      max-width: 100%;
-      height: auto;
-    }
-    .content {
-      padding: 20px;
-    }
-    .btn-buy {
-      display: inline-block;
-      background: #d62828;
-      color: white;
-      padding: 15px 30px;
-      font-size: 1.2rem;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: background 0.3s ease;
-    }
-    .btn-buy:hover {
-      background: #a71d2a;
-    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:#e5e7eb}
+    header{padding:20px;border-bottom:1px solid #1f2937;display:flex;gap:16px;align-items:center;justify-content:space-between}
+    header h1{margin:0;font-size:18px;font-weight:700}
+    header .hint{color:var(--muted);font-size:12px}
+    .container{max-width:1150px;margin:0 auto;padding:20px}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+    .controls input,.controls select, .controls button{background:#0b1220;color:#e5e7eb;border:1px solid #1f2937;border-radius:10px;padding:10px 12px}
+    .controls button{cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    @media (max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:560px){.grid{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid #1f2937;border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+    .kpi{display:flex;flex-direction:column;gap:4px}
+    .kpi .label{font-size:12px;color:var(--muted)}
+    .kpi .value{font-size:22px;font-weight:800}
+    .kpi .delta{font-size:12px}
+    .value.ok{color:var(--ok)}
+    .value.bad{color:var(--accent)}
+    canvas{width:100%;height:380px}
+    .row{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    @media (max-width:1000px){.row{grid-template-columns:1fr}}
+    table{width:100%;border-collapse:collapse}
+    th,td{font-size:13px;border-bottom:1px solid #1f2937;padding:10px;text-align:left}
+    th{color:#cbd5e1}
+    .muted{color:var(--muted)}
+    .footer{opacity:.7;font-size:12px;margin-top:10px}
+    .badge{display:inline-block;background:#172554;color:#93c5fd;border:1px solid #1d4ed8;padding:3px 8px;border-radius:999px;font-size:11px}
   </style>
-
-  <!-- Meta Pixel Code -->
-  <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '616887814810300'); 
-    fbq('track', 'PageView');
-  </script>
-  <noscript>
-    <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=616887814810300&ev=PageView&noscript=1"/>
-  </noscript>
-  <!-- End Meta Pixel Code -->
+  <!-- Chart.js & PapaParse (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
+  <header>
+    <div>
+      <h1>FAHA Store – Dashboard Jualan & FB Ads</h1>
+      <div class="hint">Muat naik <code>data/sales.csv</code> & <code>data/ads.csv</code> dalam repo GitHub Pages anda. Dashboard ini akan kira Sales, Orders, Clicks, Amount Spent, ROAS & CPA automatik.</div>
+    </div>
+    <div class="badge">Static – GitHub Pages</div>
+  </header>
 
-<header>
-  <h1>Chili Pan Mee Halal</h1>
-</header>
+  <div class="container">
+    <div class="controls card">
+      <label>Julat Tarikh:
+        <select id="range">
+          <option value="7">7 hari</option>
+          <option value="30" selected>30 hari</option>
+          <option value="90">90 hari</option>
+          <option value="all">Semua</option>
+        </select>
+      </label>
+      <label>Dari <input type="date" id="from"></label>
+      <label>Hingga <input type="date" id="to"></label>
+      <button id="apply">Tapis</button>
+      <span class="muted">Fail: <code>data/sales.csv</code> & <code>data/ads.csv</code></span>
+    </div>
 
-<section class="hero">
-  <img src="chili-pan-mee.jpg" alt="Chili Pan Mee Halal">
-</section>
+    <div class="grid">
+      <div class="card kpi"><div class="label">Jumlah Jualan (MYR)</div><div id="kpiSales" class="value">RM0</div><div class="delta muted" id="kpiAOV">AOV: RM0</div></div>
+      <div class="card kpi"><div class="label">Bilangan Orders</div><div id="kpiOrders" class="value">0</div><div class="delta muted" id="kpiConv">CR: 0%</div></div>
+      <div class="card kpi"><div class="label">FB Link Clicks</div><div id="kpiClicks" class="value">0</div><div class="delta muted" id="kpiCTR">CTR: —</div></div>
+      <div class="card kpi"><div class="label">Amount Spent (MYR)</div><div id="kpiSpent" class="value">RM0</div><div class="delta muted" id="kpiCPA">CPA: —</div></div>
+    </div>
 
-<section class="content">
-  <h2>Pedas, Halal & Lazat!</h2>
-  <p>Rasai kehebatan Chili Pan Mee Halal kami. Dimasak segar setiap hari dengan bahan-bahan berkualiti tinggi.</p>
-  <br>
-  <a href="https://toyyibpay.com/Chili-Pan-Mee-Halal" class="btn-buy" onclick="fbq('track', 'InitiateCheckout');">
-    Bayar Sekarang
-  </a>
-</section>
+    <div class="row" style="margin-top:14px">
+      <div class="card"><canvas id="chartSales"></canvas></div>
+      <div class="card"><canvas id="chartRoas"></canvas></div>
+    </div>
 
+    <div class="card" style="margin-top:14px">
+      <h3 style="margin:0 0 8px 0">Ringkasan Harian</h3>
+      <div class="muted" style="margin-bottom:8px">Gabungan data <code>sales.csv</code> & <code>ads.csv</code> mengikut tarikh.</div>
+      <div style="overflow:auto">
+        <table id="tbl"><thead>
+          <tr>
+            <th>Tarikh</th>
+            <th>Orders</th>
+            <th>Sales (RM)</th>
+            <th>Clicks</th>
+            <th>Spent (RM)</th>
+            <th>ROAS</th>
+            <th>CPA (RM)</th>
+          </tr>
+        </thead><tbody></tbody></table>
+      </div>
+      <div class="footer">Tip: Eksport laporan Toyyibpay (Paid sahaja) → simpan sebagai <code>data/sales.csv</code>. Eksport Ads Manager (columns: date, clicks, amount_spent, impressions) → simpan sebagai <code>data/ads.csv</code>.</div>
+    </div>
+  </div>
+
+<script>
+// ====== Util ======
+const RM = n => `RM${(n||0).toFixed(2)}`;
+function parseDate(d){
+  // cuba auto-parse beberapa format
+  if(!d) return null;
+  // YYYY-MM-DD or DD/MM/YYYY
+  if(/\d{4}-\d{2}-\d{2}/.test(d)) return new Date(d+'T00:00:00');
+  const m = d.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(m){
+    const dd = m[1].padStart(2,'0'), mm = m[2].padStart(2,'0');
+    const yyyy = (m[3].length===2?('20'+m[3]):m[3]);
+    return new Date(`${yyyy}-${mm}-${dd}T00:00:00`);
+  }
+  const dt = new Date(d);
+  return isNaN(dt)?null:dt;
+}
+function fmtDate(dt){
+  return dt.toISOString().slice(0,10);
+}
+
+// ====== Load CSVs ======
+async function loadCSV(url){
+  return new Promise((resolve)=>{
+    Papa.parse(url, {download:true, header:true, skipEmptyLines:true, complete: res=> resolve(res.data), error: ()=> resolve([])});
+  });
+}
+
+// Expected schemas:
+// sales.csv columns (case-insensitive): date, amount, status, order_id
+// ads.csv   columns: date, clicks, amount_spent, impressions (optional: campaign)
+
+let rawSales=[], rawAds=[];
+let chart1, chart2;
+
+async function init(){
+  try{ rawSales = await loadCSV('data/sales.csv'); }catch{ rawSales=[] }
+  try{ rawAds   = await loadCSV('data/ads.csv'); }catch{ rawAds=[] }
+
+  // normalise
+  rawSales = rawSales.map(r=>({
+    date: parseDate(r.date||r.Date||r.tarikh||r.Tarikh),
+    amount: parseFloat((r.amount||r.Amount||r.jumlah||r.total||"0").toString().replace(/[^0-9.\-]/g,''))||0,
+    status: (r.status||r.Status||'').toString().toLowerCase(),
+    order_id: r.order_id||r.OrderID||r.invoice||r.BillCode||''
+  })).filter(r=>r.date);
+
+  rawAds = rawAds.map(r=>({
+    date: parseDate(r.date||r.Date||r.day||r.Day),
+    clicks: parseInt((r.clicks||r.Clicks||r.link_clicks||"0").toString().replace(/[^0-9\-]/g,''))||0,
+    spent: parseFloat((r.amount_spent||r.Spent||r.spend||r.amount||"0").toString().replace(/[^0-9.\-]/g,''))||0,
+    impressions: parseInt((r.impressions||r.Impressions||"0").toString().replace(/[^0-9\-]/g,''))||0,
+    campaign: r.campaign||r.Campaign||''
+  })).filter(r=>r.date);
+
+  // default range 30 days
+  document.getElementById('range').value = '30';
+  applyFilters();
+}
+
+function filterByDate(data, from, to){
+  return data.filter(r=> r.date && (!from || r.date>=from) && (!to || r.date<=to));
+}
+
+function aggregateDaily(sales, ads){
+  const map = new Map();
+  const key = d=> fmtDate(d);
+
+  sales.forEach(r=>{
+    const k = key(r.date);
+    if(!map.has(k)) map.set(k,{date:new Date(k+'T00:00:00'), orders:0, sales:0, clicks:0, spent:0});
+    if(r.status.includes('paid') || r.status.includes('success') || r.status===''){
+      map.get(k).orders += 1;
+      map.get(k).sales  += r.amount||0;
+    }
+  });
+  ads.forEach(r=>{
+    const k = key(r.date);
+    if(!map.has(k)) map.set(k,{date:new Date(k+'T00:00:00'), orders:0, sales:0, clicks:0, spent:0});
+    map.get(k).clicks += r.clicks||0;
+    map.get(k).spent  += r.spent||0;
+  });
+
+  return [...map.values()].sort((a,b)=> a.date-b.date);
+}
+
+function sum(arr, f){ return arr.reduce((t,x)=>t+(f?f(x):x),0); }
+
+function updateUI(daily){
+  const totalSales = sum(daily, d=>d.sales);
+  const totalOrders= sum(daily, d=>d.orders);
+  const totalClicks= sum(daily, d=>d.clicks);
+  const totalSpent = sum(daily, d=>d.spent);
+  const aov = totalOrders? (totalSales/totalOrders):0;
+  const cr  = totalClicks? (totalOrders/totalClicks)*100:0;
+  const cpa = totalOrders? (totalSpent/totalOrders):0;
+  const roas= totalSpent? (totalSales/totalSpent):0;
+
+  document.getElementById('kpiSales').textContent = RM(totalSales);
+  document.getElementById('kpiAOV').textContent   = `AOV: ${RM(aov)}`;
+  document.getElementById('kpiOrders').textContent= totalOrders.toString();
+  document.getElementById('kpiConv').textContent  = `CR: ${cr.toFixed(1)}%`;
+  document.getElementById('kpiClicks').textContent= totalClicks.toString();
+  document.getElementById('kpiSpent').textContent = RM(totalSpent);
+  document.getElementById('kpiCPA').textContent   = totalOrders? `CPA: ${RM(cpa)}`: 'CPA: —';
+
+  // table
+  const tbody = document.querySelector('#tbl tbody');
+  tbody.innerHTML = '';
+  daily.forEach(d=>{
+    const tr = document.createElement('tr');
+    const roas = d.spent? (d.sales/d.spent):0;
+    const cpa  = d.orders? (d.spent/d.orders):0;
+    tr.innerHTML = `<td>${fmtDate(d.date)}</td>
+      <td>${d.orders}</td>
+      <td>${RM(d.sales)}</td>
+      <td>${d.clicks}</td>
+      <td>${RM(d.spent)}</td>
+      <td>${roas?roas.toFixed(2):'—'}</td>
+      <td>${d.orders?RM(cpa):'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // charts
+  const labels = daily.map(d=> fmtDate(d.date));
+  const sales  = daily.map(d=> d.sales);
+  const spent  = daily.map(d=> d.spent);
+  const roasL  = daily.map(d=> d.spent? d.sales/d.spent:0);
+
+  const ctx1 = document.getElementById('chartSales');
+  const ctx2 = document.getElementById('chartRoas');
+
+  if(chart1) chart1.destroy();
+  if(chart2) chart2.destroy();
+
+  chart1 = new Chart(ctx1, {
+    type:'line', data:{ labels, datasets:[
+      {label:'Sales (RM)', data:sales},
+      {label:'Spent (RM)', data:spent}
+    ]}, options:{responsive:true, maintainAspectRatio:false}
+  });
+
+  chart2 = new Chart(ctx2, {
+    type:'line', data:{ labels, datasets:[
+      {label:'ROAS', data:roasL}
+    ]}, options:{responsive:true, maintainAspectRatio:false}
+  });
+}
+
+function applyFilters(){
+  // date range
+  let from=null, to=null;
+  const rng = document.getElementById('range').value;
+  const fromI= document.getElementById('from').value;
+  const toI  = document.getElementById('to').value;
+
+  if(fromI) from = new Date(fromI+'T00:00:00');
+  if(toI)   to   = new Date(toI+'T23:59:59');
+
+  if(rng!=='all' && !fromI && !toI){
+    const days = parseInt(rng,10);
+    to = new Date();
+    from = new Date();
+    from.setDate(to.getDate() - (days-1));
+  }
+
+  const fs = filterByDate(rawSales, from, to);
+  const fa = filterByDate(rawAds, from, to);
+  const daily = aggregateDaily(fs, fa);
+  updateUI(daily);
+}
+
+// events
+ document.getElementById('apply').addEventListener('click', applyFilters);
+ document.getElementById('range').addEventListener('change', ()=>{
+   document.getElementById('from').value='';
+   document.getElementById('to').value='';
+   applyFilters();
+ });
+
+init();
+</script>
 </body>
 </html>
