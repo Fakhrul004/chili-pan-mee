@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chili Pan Mee Halal - FAHA Store</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#fff8f8; color:#222; text-align:center; }
+    header { background:#c8102e; padding:20px; color:#fff; }
+    header h1 { margin:0; font-size:2rem; }
+    .hero { padding:20px; }
+    .hero img { max-width:100%; border-radius:15px; box-shadow:0 4px 10px rgba(0,0,0,.2); }
+    .tagline { font-size:1.2rem; margin:15px 0; font-weight:bold; }
+    .cta-btn { background:#c8102e; color:#fff; padding:15px 25px; border:none; border-radius:30px; font-size:1.2rem; cursor:pointer; text-decoration:none; display:inline-block; transition:.3s; }
+    .cta-btn:hover { background:#a50e25; }
+    section { padding:30px 20px; }
+    .benefits { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:20px; margin-top:20px; }
+    .benefit { background:#fff; border-radius:10px; padding:15px; box-shadow:0 3px 8px rgba(0,0,0,.1); }
+    footer { background:#c8102e; color:#fff; padding:15px; margin-top:20px; }
+  </style>
+
+  <!-- Meta Pixel Code (tukar ID ini kepada Pixel ID sebenar bila ada) -->
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init','616887814810300');  // NOTE: ini bukan Pixel ID; ganti bila ada Pixel ID sebenar
+  fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+       src="https://www.facebook.com/tr?id=616887814810300&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel Code -->
+</head>
+<body>
+
+<header>
+  <h1>Chili Pan Mee Halal</h1>
+  <p>Pedas, Lazat, & Halal — Hanya Dari FAHA Store</p>
+</header>
+
+<div class="hero">
+  <!-- Gambar lokal dalam repo yang sama -->
+  <img src="./chili-pan-mee.jpg" alt="Chili Pan Mee Halal" />
+  <p class="tagline">Nikmati rasa asli Chili Pan Mee dengan kelazatan pedas yang memukau! 🍜</p>
+
+  <!-- Jangan ubah id="buyBtn" -->
+  <a id="buyBtn" href="https://toyyibpay.com/Chili-Pan-Mee-Halal" class="cta-btn">Beli Sekarang</a>
+</div>
+
+<section>
+  <h2>Kenapa Pilih Chili Pan Mee Kami?</h2>
+  <div class="benefits">
+    <div class="benefit">✅ 100% Halal & bersih</div>
+    <div class="benefit">🔥 Pedas padu & penuh rasa</div>
+    <div class="benefit">⏱️ Sedia dalam 5 minit</div>
+    <div class="benefit">📦 Hantar ke seluruh Malaysia</div>
+  </div>
+</section>
+
+<section style="background:#fff0f0;">
+  <h2>Dapatkan Sekarang!</h2>
+  <p>Stok terhad — jangan lepaskan peluang untuk menikmati kelazatan Chili Pan Mee Halal ini.</p>
+  <a href="https://toyyibpay.com/Chili-Pan-Mee-Halal" class="cta-btn" id="buyBtn2">Tempah Sekarang</a>
+</section>
+
+<footer>
+  &copy; 2025 FAHA Store. Semua hak cipta terpelihara.
+</footer>
+
+<!-- Tracking klik butang supaya event dihantar dahulu sebelum redirect -->
+<script>
+  function trackAndGo(e){
+    e.preventDefault();
+    var url = e.currentTarget.getAttribute('href');
+    try {
+      fbq('track','InitiateCheckout');
+    } catch(err) {}
+    setTimeout(function(){ window.location.href = url; }, 200);
+  }
+  document.getElementById('buyBtn').addEventListener('click', trackAndGo);
+  document.getElementById('buyBtn2').addEventListener('click', trackAndGo);
+</script>
+
+</body>
+</html>
